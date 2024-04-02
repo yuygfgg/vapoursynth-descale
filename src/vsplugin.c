@@ -200,7 +200,8 @@ static void VS_CC descale_create(const VSMap *in, VSMap *out, void *user_data, V
     char *funcname;
 
     struct DescaleParams params = {
-        .mode = (enum DescaleMode)user_data
+        .mode = (enum DescaleMode)user_data & (DESCALE_FLAG_SCALE - 1),
+        .upscale = (enum DescaleMode)user_data & DESCALE_FLAG_SCALE,
     };
 
     switch(params.mode) {
@@ -319,11 +320,11 @@ static void VS_CC descale_create(const VSMap *in, VSMap *out, void *user_data, V
 
     d.dd.active_width = vsapi->mapGetFloat(in, "src_width", 0, &err);
     if (err)
-        d.dd.active_width = (double)d.dd.dst_width;
+        d.dd.active_width = (double)(params.upscale ? d.dd.src_width : d.dd.dst_width);
 
     d.dd.active_height = vsapi->mapGetFloat(in, "src_height", 0, &err);
     if (err)
-        d.dd.active_height = (double)d.dd.dst_height;
+        d.dd.active_height = (double)(params.upscale ? d.dd.src_height : d.dd.dst_height);
 
     int border_handling = vsapi->mapGetIntSaturated(in, "border_handling", 0, &err);
     if (err)
@@ -346,7 +347,7 @@ static void VS_CC descale_create(const VSMap *in, VSMap *out, void *user_data, V
     else
         opt_enum = DESCALE_OPT_AUTO;
 
-    if (d.ignore_mask_node)
+    if (d.ignore_mask_node || params.upscale)
         opt_enum = DESCALE_OPT_NONE;
 
     if (d.dd.dst_width < 1) {
@@ -363,8 +364,15 @@ static void VS_CC descale_create(const VSMap *in, VSMap *out, void *user_data, V
         return;
     }
 
-    if (d.dd.dst_width > d.dd.src_width || d.dd.dst_height > d.dd.src_height) {
+    if (!params.upscale && (d.dd.dst_width > d.dd.src_width || d.dd.dst_height > d.dd.src_height)) {
         vsapi->mapSetError(out, get_error(funcname, "Output dimension must be less than or equal to input dimension."));
+        vsapi->freeNode(d.node);
+        vsapi->freeNode(d.ignore_mask_node);
+        return;
+    }
+
+    if (params.upscale && (d.dd.dst_width < d.dd.src_width || d.dd.dst_height < d.dd.src_height)) {
+        vsapi->mapSetError(out, get_error(funcname, "Output dimension must be larger than or equal to input dimension."));
         vsapi->freeNode(d.node);
         vsapi->freeNode(d.ignore_mask_node);
         return;
@@ -439,6 +447,13 @@ static void VS_CC descale_create(const VSMap *in, VSMap *out, void *user_data, V
         return;
     }
 
+    if (params.upscale && d.ignore_mask_node) {
+        vsapi->mapSetError(out, get_error(funcname, "Ignore mask is not supported when upscaling."));
+        vsapi->freeNode(d.node);
+        vsapi->freeNode(d.ignore_mask_node);
+        return;
+    }
+
     params.post_conv_size = vsapi->mapNumElements(in, "post_conv");
     if (params.post_conv_size == -1) {
         params.post_conv_size = 0;
@@ -492,20 +507,25 @@ VS_EXTERNAL_API(void) VapourSynthPluginInit2(VSPlugin *plugin, const VSPLUGINAPI
     "clip:vnode;"
 #define DESCALE_ALL_ARGS DESCALE_BASE_ARGS DESCALE_COM_OUT_ARGS
 
-    vspapi->registerFunction("Debilinear", DESCALE_ALL_ARGS, descale_create, (void *)(DESCALE_MODE_BILINEAR), plugin);
+#define DESCALE_REGISTER_FUNCTION(name_descale, name_scale, args, mode) \
+    vspapi->registerFunction(name_descale, args, descale_create, (void *)(mode), plugin); \
+    vspapi->registerFunction(name_scale, args, descale_create, (void *)(mode | DESCALE_FLAG_SCALE), plugin);
 
-    vspapi->registerFunction("Debicubic", DESCALE_BASE_ARGS "b:float:opt;" "c:float:opt;" DESCALE_COM_OUT_ARGS, descale_create, (void *)(DESCALE_MODE_BICUBIC), plugin);
+    DESCALE_REGISTER_FUNCTION("Debilinear", "Bilinear", DESCALE_ALL_ARGS, DESCALE_MODE_BILINEAR);
 
-    vspapi->registerFunction("Delanczos", DESCALE_BASE_ARGS "taps:int:opt;" DESCALE_COM_OUT_ARGS, descale_create, (void *)(DESCALE_MODE_LANCZOS), plugin);
+    DESCALE_REGISTER_FUNCTION("Debicubic", "Bicubic", DESCALE_BASE_ARGS "b:float:opt;" "c:float:opt;" DESCALE_COM_OUT_ARGS, DESCALE_MODE_BICUBIC);
 
-    vspapi->registerFunction("Despline16", DESCALE_ALL_ARGS, descale_create, (void *)(DESCALE_MODE_SPLINE16), plugin);
+    DESCALE_REGISTER_FUNCTION("Delanczos", "Lanczos", DESCALE_BASE_ARGS "taps:int:opt;" DESCALE_COM_OUT_ARGS, DESCALE_MODE_LANCZOS);
 
-    vspapi->registerFunction("Despline36", DESCALE_ALL_ARGS, descale_create, (void *)(DESCALE_MODE_SPLINE36), plugin);
+    DESCALE_REGISTER_FUNCTION("Despline16", "Spline16", DESCALE_ALL_ARGS, DESCALE_MODE_SPLINE16);
 
-    vspapi->registerFunction("Despline64", DESCALE_ALL_ARGS, descale_create, (void *)(DESCALE_MODE_SPLINE64), plugin);
+    DESCALE_REGISTER_FUNCTION("Despline36", "Spline36", DESCALE_ALL_ARGS, DESCALE_MODE_SPLINE36);
 
-    vspapi->registerFunction("Decustom", DESCALE_BASE_ARGS "custom_kernel:func;taps:int;" DESCALE_COM_OUT_ARGS, descale_create, (void *)DESCALE_MODE_CUSTOM, plugin);
+    DESCALE_REGISTER_FUNCTION("Despline64", "Spline64", DESCALE_ALL_ARGS, DESCALE_MODE_SPLINE64);
 
+    DESCALE_REGISTER_FUNCTION("Decustom", "ScaleCustom", DESCALE_BASE_ARGS "custom_kernel:func;taps:int;" DESCALE_COM_OUT_ARGS, DESCALE_MODE_CUSTOM);
+
+#undef DESCALE_REGISTER_FUNCTION
 #undef DESCALE_BASE_ARGS
 #undef DESCALE_COM_OUT_ARGS
 #undef DESCALE_ALL_ARGS

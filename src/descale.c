@@ -674,11 +674,41 @@ static void process_plane_masked(int dst_dim, int src_dim, int vector_count, enu
 }
 
 
+static void process_plane_upscale_c(int dst_dim, int src_dim, int vector_count, enum DescaleDir dir, int bandwidth,
+                              int * restrict weights_left_idx, int * restrict weights_right_idx, int * restrict weights_top_idx, int * restrict weights_bot_idx,
+                              int weights_columns, float * restrict weights, double * restrict multiplied_weights,
+                              int src_stride, int imask_stride, int dst_stride, const float * restrict srcp, float * restrict dstp)
+{
+    int imuls = dir == DESCALE_DIR_HORIZONTAL ? src_stride : 1;
+    int jmuls = dir == DESCALE_DIR_HORIZONTAL ? 1 : src_stride;
+
+    int imuld = dir == DESCALE_DIR_HORIZONTAL ? dst_stride : 1;
+    int jmuld = dir == DESCALE_DIR_HORIZONTAL ? 1 : dst_stride;
+
+    for (int i = 0; i < vector_count; i++) {
+        for (int j = 0; j < src_dim; j++) {
+            float sum = 0.0f;
+            for (int k = weights_top_idx[j]; k < weights_bot_idx[j]; k++)
+                sum += weights[k * weights_columns + j - weights_left_idx[k]] * srcp[k * jmuls];
+
+            dstp[j * jmuld] = sum;
+        }
+
+        srcp += imuls;
+        dstp += imuld;
+    }
+}
+
+
 static void descale_process_vectors_c(struct DescaleCore *core, enum DescaleDir dir, int vector_count,
                                       int src_stride, int imask_stride, int dst_stride, const float *srcp, const unsigned char *imaskp, float *dstp)
 {
 
-    if (imaskp) {
+    if (core->upscale) {
+        process_plane_upscale_c(core->dst_dim, core->src_dim, vector_count, dir, core->bandwidth,
+                             core->weights_left_idx, core->weights_right_idx, core->weights_top_idx, core->weights_bot_idx,
+                             core->weights_columns, core->weights, core->multiplied_weights, src_stride, imask_stride, dst_stride, srcp, dstp);
+    } else if (imaskp) {
         process_plane_masked(core->dst_dim, core->src_dim, vector_count, dir, core->bandwidth,
                              core->weights_left_idx, core->weights_right_idx, core->weights_top_idx, core->weights_bot_idx,
                              core->weights_columns, core->weights, core->multiplied_weights, src_stride, imask_stride, dst_stride, srcp, imaskp, dstp);
@@ -734,8 +764,15 @@ static struct DescaleCore *create_core(int src_dim, int dst_dim, struct DescaleP
     if (support == 0)
         return NULL;
 
+    if (params->upscale) {
+        int tmp = dst_dim;
+        dst_dim = src_dim;
+        src_dim = tmp;
+    }
+
     core.src_dim = src_dim;
     core.dst_dim = dst_dim;
+    core.upscale = params->upscale;
     core.bandwidth = support * 4 - 1;
 
     double *weights;
@@ -810,7 +847,7 @@ static struct DescaleCore *create_core(int src_dim, int dst_dim, struct DescaleP
                 core.multiplied_weights[i * core.bandwidth + j] = multiplied_weights[i * dst_dim + i + j];
             }
         }
-    } else {
+    } else if (!core.upscale) {
         double *lower;
         transpose_matrix(dst_dim, dst_dim, ldlt, &lower);
         multiply_banded_matrix_with_diagonal(dst_dim, core.bandwidth, lower);

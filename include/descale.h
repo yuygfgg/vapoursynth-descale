@@ -24,6 +24,8 @@
 #ifndef DESCALE_H
 #define DESCALE_H
 
+#include <stdbool.h>
+
 
 typedef enum DescaleMode
 {
@@ -33,7 +35,9 @@ typedef enum DescaleMode
     DESCALE_MODE_SPLINE16 = 4,
     DESCALE_MODE_SPLINE36 = 5,
     DESCALE_MODE_SPLINE64 = 6,
-    DESCALE_MODE_CUSTOM   = 7
+    DESCALE_MODE_CUSTOM   = 7,
+
+    DESCALE_FLAG_SCALE    = 1 << 8
 } DescaleMode;
 
 
@@ -71,6 +75,7 @@ typedef struct DescaleCustomKernel
 typedef struct DescaleParams
 {
     enum DescaleMode mode;
+    bool upscale;
     int taps;           // required if mode is LANCZOS or CUSTOM
     double param1;      // required if mode is BICUBIC
     double param2;      // required if mode is BICUBIC
@@ -89,6 +94,7 @@ typedef struct DescaleCore
 {
     int src_dim;
     int dst_dim;
+    bool upscale;
     int bandwidth;
     float **upper;
     float **lower;
