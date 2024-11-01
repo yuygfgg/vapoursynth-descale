@@ -21,47 +21,47 @@
  */
 
 
-#ifdef DESCALE_X86
+#if defined(DESCALE_X86) || defined(__ARM_NEON__)
 
 
 #include <stdlib.h>
-#include <immintrin.h>
+#include "simde/x86/avx2.h"
 #include "common.h"
 #include "x86/descale_avx2.h"
 
 
 // Taken from zimg https://github.com/sekrit-twc/zimg
-static inline __attribute__((always_inline)) void mm256_transpose8_ps(__m256 *row0, __m256 *row1, __m256 *row2, __m256 *row3, __m256 *row4, __m256 *row5, __m256 *row6, __m256 *row7)
+static inline __attribute__((always_inline)) void mm256_transpose8_ps(simde__m256 *row0, simde__m256 *row1, simde__m256 *row2, simde__m256 *row3, simde__m256 *row4, simde__m256 *row5, simde__m256 *row6, simde__m256 *row7)
 {
-    __m256 t0, t1, t2, t3, t4, t5, t6, t7;
-    __m256 tt0, tt1, tt2, tt3, tt4, tt5, tt6, tt7;
+    simde__m256 t0, t1, t2, t3, t4, t5, t6, t7;
+    simde__m256 tt0, tt1, tt2, tt3, tt4, tt5, tt6, tt7;
 
-    t0 = _mm256_unpacklo_ps(*row0, *row1);
-    t1 = _mm256_unpackhi_ps(*row0, *row1);
-    t2 = _mm256_unpacklo_ps(*row2, *row3);
-    t3 = _mm256_unpackhi_ps(*row2, *row3);
-    t4 = _mm256_unpacklo_ps(*row4, *row5);
-    t5 = _mm256_unpackhi_ps(*row4, *row5);
-    t6 = _mm256_unpacklo_ps(*row6, *row7);
-    t7 = _mm256_unpackhi_ps(*row6, *row7);
+    t0 = simde_mm256_unpacklo_ps(*row0, *row1);
+    t1 = simde_mm256_unpackhi_ps(*row0, *row1);
+    t2 = simde_mm256_unpacklo_ps(*row2, *row3);
+    t3 = simde_mm256_unpackhi_ps(*row2, *row3);
+    t4 = simde_mm256_unpacklo_ps(*row4, *row5);
+    t5 = simde_mm256_unpackhi_ps(*row4, *row5);
+    t6 = simde_mm256_unpacklo_ps(*row6, *row7);
+    t7 = simde_mm256_unpackhi_ps(*row6, *row7);
 
-    tt0 = _mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(1, 0, 1, 0));
-    tt1 = _mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(3, 2, 3, 2));
-    tt2 = _mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(1, 0, 1, 0));
-    tt3 = _mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(3, 2, 3, 2));
-    tt4 = _mm256_shuffle_ps(t4, t6, _MM_SHUFFLE(1, 0, 1, 0));
-    tt5 = _mm256_shuffle_ps(t4, t6, _MM_SHUFFLE(3, 2, 3, 2));
-    tt6 = _mm256_shuffle_ps(t5, t7, _MM_SHUFFLE(1, 0, 1, 0));
-    tt7 = _mm256_shuffle_ps(t5, t7, _MM_SHUFFLE(3, 2, 3, 2));
+    tt0 = simde_mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(1, 0, 1, 0));
+    tt1 = simde_mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(3, 2, 3, 2));
+    tt2 = simde_mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(1, 0, 1, 0));
+    tt3 = simde_mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(3, 2, 3, 2));
+    tt4 = simde_mm256_shuffle_ps(t4, t6, _MM_SHUFFLE(1, 0, 1, 0));
+    tt5 = simde_mm256_shuffle_ps(t4, t6, _MM_SHUFFLE(3, 2, 3, 2));
+    tt6 = simde_mm256_shuffle_ps(t5, t7, _MM_SHUFFLE(1, 0, 1, 0));
+    tt7 = simde_mm256_shuffle_ps(t5, t7, _MM_SHUFFLE(3, 2, 3, 2));
 
-    *row0 = _mm256_permute2f128_ps(tt0, tt4, 0x20);
-    *row1 = _mm256_permute2f128_ps(tt1, tt5, 0x20);
-    *row2 = _mm256_permute2f128_ps(tt2, tt6, 0x20);
-    *row3 = _mm256_permute2f128_ps(tt3, tt7, 0x20);
-    *row4 = _mm256_permute2f128_ps(tt0, tt4, 0x31);
-    *row5 = _mm256_permute2f128_ps(tt1, tt5, 0x31);
-    *row6 = _mm256_permute2f128_ps(tt2, tt6, 0x31);
-    *row7 = _mm256_permute2f128_ps(tt3, tt7, 0x31);
+    *row0 = simde_mm256_permute2f128_ps(tt0, tt4, 0x20);
+    *row1 = simde_mm256_permute2f128_ps(tt1, tt5, 0x20);
+    *row2 = simde_mm256_permute2f128_ps(tt2, tt6, 0x20);
+    *row3 = simde_mm256_permute2f128_ps(tt3, tt7, 0x20);
+    *row4 = simde_mm256_permute2f128_ps(tt0, tt4, 0x31);
+    *row5 = simde_mm256_permute2f128_ps(tt1, tt5, 0x31);
+    *row6 = simde_mm256_permute2f128_ps(tt2, tt6, 0x31);
+    *row7 = simde_mm256_permute2f128_ps(tt3, tt7, 0x31);
 }
 
 
@@ -69,27 +69,27 @@ static inline __attribute__((always_inline)) void mm256_transpose8_ps(__m256 *ro
 static inline __attribute__((always_inline)) void transpose_line_8x8_ps(float * restrict dst, const float * restrict src, int src_stride, int left, int right)
 {
     for (int j = left; j < right; j += 8) {
-        __m256 x0, x1, x2, x3, x4, x5, x6, x7;
+        simde__m256 x0, x1, x2, x3, x4, x5, x6, x7;
 
-        x0 = _mm256_load_ps(src + j);
-        x1 = _mm256_load_ps(src + src_stride + j);
-        x2 = _mm256_load_ps(src + 2 * src_stride + j);
-        x3 = _mm256_load_ps(src + 3 * src_stride + j);
-        x4 = _mm256_load_ps(src + 4 * src_stride + j);
-        x5 = _mm256_load_ps(src + 5 * src_stride + j);
-        x6 = _mm256_load_ps(src + 6 * src_stride + j);
-        x7 = _mm256_load_ps(src + 7 * src_stride + j);
+        x0 = simde_mm256_load_ps(src + j);
+        x1 = simde_mm256_load_ps(src + src_stride + j);
+        x2 = simde_mm256_load_ps(src + 2 * src_stride + j);
+        x3 = simde_mm256_load_ps(src + 3 * src_stride + j);
+        x4 = simde_mm256_load_ps(src + 4 * src_stride + j);
+        x5 = simde_mm256_load_ps(src + 5 * src_stride + j);
+        x6 = simde_mm256_load_ps(src + 6 * src_stride + j);
+        x7 = simde_mm256_load_ps(src + 7 * src_stride + j);
 
         mm256_transpose8_ps(&x0, &x1, &x2, &x3, &x4, &x5, &x6, &x7);
 
-        _mm256_store_ps(dst, x0);
-        _mm256_store_ps(dst + 8, x1);
-        _mm256_store_ps(dst + 16, x2);
-        _mm256_store_ps(dst + 24, x3);
-        _mm256_store_ps(dst + 32, x4);
-        _mm256_store_ps(dst + 40, x5);
-        _mm256_store_ps(dst + 48, x6);
-        _mm256_store_ps(dst + 56, x7);
+        simde_mm256_store_ps(dst, x0);
+        simde_mm256_store_ps(dst + 8, x1);
+        simde_mm256_store_ps(dst + 16, x2);
+        simde_mm256_store_ps(dst + 24, x3);
+        simde_mm256_store_ps(dst + 32, x4);
+        simde_mm256_store_ps(dst + 40, x5);
+        simde_mm256_store_ps(dst + 48, x6);
+        simde_mm256_store_ps(dst + 56, x7);
 
         dst += 64;
     }
@@ -106,11 +106,11 @@ static void process_line8_h_b3_avx2(int width, int current_width, int current_he
                                     int src_stride, int dst_stride, const float * restrict srcp, float * restrict dstp, float * restrict temp)
 {
     transpose_line_8x8_ps(temp, srcp, src_stride, 0, ceil_n(current_width, 8));
-    __m256 x0, x1, x2, x3, x4, x5, x6, x7;
-    __m256 a0, a1, lo, up, di, x_last;
-    x_last = _mm256_setzero_ps();
+    simde__m256 x0, x1, x2, x3, x4, x5, x6, x7;
+    simde__m256 a0, a1, lo, up, di, x_last;
+    x_last = simde_mm256_setzero_ps();
     for (int j = 0; j < width; j += 8) {
-        x0 = _mm256_setzero_ps();
+        x0 = simde_mm256_setzero_ps();
         x1 = x0;
         x2 = x0;
         x3 = x0;
@@ -121,9 +121,9 @@ static void process_line8_h_b3_avx2(int width, int current_width, int current_he
 
 #define MATMULT(x, a0, a1, wl_idx, wr_idx, w_col, weights, temp, j, m)\
         for (int k = wl_idx[j + m]; k < wr_idx[j + m]; k++) {\
-            a0 = _mm256_set1_ps(weights[(j + m) * w_col + k - wl_idx[j + m]]);\
-            a1 = _mm256_load_ps(temp + k * 8);\
-            x = _mm256_fmadd_ps(a0, a1, x);\
+            a0 = simde_mm256_set1_ps(weights[(j + m) * w_col + k - wl_idx[j + m]]);\
+            a1 = simde_mm256_load_ps(temp + k * 8);\
+            x = simde_mm256_fmadd_ps(a0, a1, x);\
         }
 
         // A' b
@@ -139,10 +139,10 @@ static void process_line8_h_b3_avx2(int width, int current_width, int current_he
 #undef MATMULT
 
 #define SOLVEF(x, lo, di, x_last, j, m)\
-        lo = _mm256_set1_ps(lower[j + m]);\
-        x = _mm256_fnmadd_ps(lo, x_last, x);\
-        di = _mm256_set1_ps(diagonal[j + m]);\
-        x = _mm256_mul_ps(x, di);
+        lo = simde_mm256_set1_ps(lower[j + m]);\
+        x = simde_mm256_fnmadd_ps(lo, x_last, x);\
+        di = simde_mm256_set1_ps(diagonal[j + m]);\
+        x = simde_mm256_mul_ps(x, di);
 
         // Solve LD y = A' b
         SOLVEF(x0, lo, di, x_last, j, 0);
@@ -158,31 +158,31 @@ static void process_line8_h_b3_avx2(int width, int current_width, int current_he
 
         x_last = x7;
 
-        _mm256_store_ps(dstp + j, x0);
-        _mm256_store_ps(dstp + 1 * dst_stride + j, x1);
-        _mm256_store_ps(dstp + 2 * dst_stride + j, x2);
-        _mm256_store_ps(dstp + 3 * dst_stride + j, x3);
-        _mm256_store_ps(dstp + 4 * dst_stride + j, x4);
-        _mm256_store_ps(dstp + 5 * dst_stride + j, x5);
-        _mm256_store_ps(dstp + 6 * dst_stride + j, x6);
-        _mm256_store_ps(dstp + 7 * dst_stride + j, x7);
+        simde_mm256_store_ps(dstp + j, x0);
+        simde_mm256_store_ps(dstp + 1 * dst_stride + j, x1);
+        simde_mm256_store_ps(dstp + 2 * dst_stride + j, x2);
+        simde_mm256_store_ps(dstp + 3 * dst_stride + j, x3);
+        simde_mm256_store_ps(dstp + 4 * dst_stride + j, x4);
+        simde_mm256_store_ps(dstp + 5 * dst_stride + j, x5);
+        simde_mm256_store_ps(dstp + 6 * dst_stride + j, x6);
+        simde_mm256_store_ps(dstp + 7 * dst_stride + j, x7);
     }
 
     // Solve L' x = y
     for (int j = ceil_n(width, 8) - 8; j >= 0; j -= 8) {
 
-        x0 = _mm256_load_ps(dstp + j);
-        x1 = _mm256_load_ps(dstp + 1 * dst_stride + j);
-        x2 = _mm256_load_ps(dstp + 2 * dst_stride + j);
-        x3 = _mm256_load_ps(dstp + 3 * dst_stride + j);
-        x4 = _mm256_load_ps(dstp + 4 * dst_stride + j);
-        x5 = _mm256_load_ps(dstp + 5 * dst_stride + j);
-        x6 = _mm256_load_ps(dstp + 6 * dst_stride + j);
-        x7 = _mm256_load_ps(dstp + 7 * dst_stride + j);
+        x0 = simde_mm256_load_ps(dstp + j);
+        x1 = simde_mm256_load_ps(dstp + 1 * dst_stride + j);
+        x2 = simde_mm256_load_ps(dstp + 2 * dst_stride + j);
+        x3 = simde_mm256_load_ps(dstp + 3 * dst_stride + j);
+        x4 = simde_mm256_load_ps(dstp + 4 * dst_stride + j);
+        x5 = simde_mm256_load_ps(dstp + 5 * dst_stride + j);
+        x6 = simde_mm256_load_ps(dstp + 6 * dst_stride + j);
+        x7 = simde_mm256_load_ps(dstp + 7 * dst_stride + j);
 
 #define SOLVEB(x, up, x_last, j, m)\
-        up = _mm256_set1_ps(upper[j + m]);\
-        x = _mm256_fnmadd_ps(up, x_last, x);
+        up = simde_mm256_set1_ps(upper[j + m]);\
+        x = simde_mm256_fnmadd_ps(up, x_last, x);
 
         SOLVEB(x7, up, x_last, j, 7);
         SOLVEB(x6, up, x7, j, 6);
@@ -199,14 +199,14 @@ static void process_line8_h_b3_avx2(int width, int current_width, int current_he
 
         mm256_transpose8_ps(&x0, &x1, &x2, &x3, &x4, &x5, &x6, &x7);
 
-        _mm256_store_ps(dstp + j, x0);
-        _mm256_store_ps(dstp + 1 * dst_stride + j, x1);
-        _mm256_store_ps(dstp + 2 * dst_stride + j, x2);
-        _mm256_store_ps(dstp + 3 * dst_stride + j, x3);
-        _mm256_store_ps(dstp + 4 * dst_stride + j, x4);
-        _mm256_store_ps(dstp + 5 * dst_stride + j, x5);
-        _mm256_store_ps(dstp + 6 * dst_stride + j, x6);
-        _mm256_store_ps(dstp + 7 * dst_stride + j, x7);
+        simde_mm256_store_ps(dstp + j, x0);
+        simde_mm256_store_ps(dstp + 1 * dst_stride + j, x1);
+        simde_mm256_store_ps(dstp + 2 * dst_stride + j, x2);
+        simde_mm256_store_ps(dstp + 3 * dst_stride + j, x3);
+        simde_mm256_store_ps(dstp + 4 * dst_stride + j, x4);
+        simde_mm256_store_ps(dstp + 5 * dst_stride + j, x5);
+        simde_mm256_store_ps(dstp + 6 * dst_stride + j, x6);
+        simde_mm256_store_ps(dstp + 7 * dst_stride + j, x7);
     }
 }
 
@@ -221,11 +221,11 @@ static void process_line8_h_b7_avx2(int width, int current_width, int current_he
                                     float * restrict diagonal, int src_stride, int dst_stride, const float * restrict srcp, float * restrict dstp, float * restrict temp)
 {
     transpose_line_8x8_ps(temp, srcp, src_stride, 0, ceil_n(current_width, 8));
-    __m256 x0, x1, x2, x3, x4, x5, x6, x7;
-    __m256 a0, a1, lo, up, di, x_last0, x_last1, x_last2;
-    x_last0 = _mm256_setzero_ps();
+    simde__m256 x0, x1, x2, x3, x4, x5, x6, x7;
+    simde__m256 a0, a1, lo, up, di, x_last0, x_last1, x_last2;
+    x_last0 = simde_mm256_setzero_ps();
     for (int j = 0; j < width; j += 8) {
-        x0 = _mm256_setzero_ps();
+        x0 = simde_mm256_setzero_ps();
         x1 = x0;
         x2 = x0;
         x3 = x0;
@@ -236,9 +236,9 @@ static void process_line8_h_b7_avx2(int width, int current_width, int current_he
 
 #define MATMULT(x, a0, a1, wl_idx, wr_idx, w_col, weights, temp, j, m)\
         for (int k = wl_idx[j + m]; k < wr_idx[j + m]; k++) {\
-            a0 = _mm256_set1_ps(weights[(j + m) * w_col + k - wl_idx[j + m]]);\
-            a1 = _mm256_load_ps(temp + k * 8);\
-            x = _mm256_fmadd_ps(a0, a1, x);\
+            a0 = simde_mm256_set1_ps(weights[(j + m) * w_col + k - wl_idx[j + m]]);\
+            a1 = simde_mm256_load_ps(temp + k * 8);\
+            x = simde_mm256_fmadd_ps(a0, a1, x);\
         }
 
         // A' b
@@ -255,23 +255,23 @@ static void process_line8_h_b7_avx2(int width, int current_width, int current_he
 
 #define SOLVEF(x, lo, di, x_last0, x_last1, x_last2, j, m)\
         if (j + m > 2) {\
-            lo = _mm256_set1_ps(lower[0][j + m]);\
-            x = _mm256_fnmadd_ps(lo, x_last2, x);\
-            lo = _mm256_set1_ps(lower[1][j + m]);\
-            x = _mm256_fnmadd_ps(lo, x_last1, x);\
-            lo = _mm256_set1_ps(lower[2][j + m]);\
-            x = _mm256_fnmadd_ps(lo, x_last0, x);\
+            lo = simde_mm256_set1_ps(lower[0][j + m]);\
+            x = simde_mm256_fnmadd_ps(lo, x_last2, x);\
+            lo = simde_mm256_set1_ps(lower[1][j + m]);\
+            x = simde_mm256_fnmadd_ps(lo, x_last1, x);\
+            lo = simde_mm256_set1_ps(lower[2][j + m]);\
+            x = simde_mm256_fnmadd_ps(lo, x_last0, x);\
         } else if (j + m > 1) {\
-            lo = _mm256_set1_ps(lower[1][j + m]);\
-            x = _mm256_fnmadd_ps(lo, x_last1, x);\
-            lo = _mm256_set1_ps(lower[2][j + m]);\
-            x = _mm256_fnmadd_ps(lo, x_last0, x);\
+            lo = simde_mm256_set1_ps(lower[1][j + m]);\
+            x = simde_mm256_fnmadd_ps(lo, x_last1, x);\
+            lo = simde_mm256_set1_ps(lower[2][j + m]);\
+            x = simde_mm256_fnmadd_ps(lo, x_last0, x);\
         } else if (j + m > 0) {\
-            lo = _mm256_set1_ps(lower[2][j + m]);\
-            x = _mm256_fnmadd_ps(lo, x_last0, x);\
+            lo = simde_mm256_set1_ps(lower[2][j + m]);\
+            x = simde_mm256_fnmadd_ps(lo, x_last0, x);\
         }\
-        di = _mm256_set1_ps(diagonal[j + m]);\
-        x = _mm256_mul_ps(x, di);
+        di = simde_mm256_set1_ps(diagonal[j + m]);\
+        x = simde_mm256_mul_ps(x, di);
 
         // Solve LD y = A' b
         SOLVEF(x0, lo, di, x_last0, x_last1, x_last2, j, 0);
@@ -289,44 +289,44 @@ static void process_line8_h_b7_avx2(int width, int current_width, int current_he
         x_last1 = x6;
         x_last2 = x5;
 
-        _mm256_store_ps(dstp + j, x0);
-        _mm256_store_ps(dstp + 1 * dst_stride + j, x1);
-        _mm256_store_ps(dstp + 2 * dst_stride + j, x2);
-        _mm256_store_ps(dstp + 3 * dst_stride + j, x3);
-        _mm256_store_ps(dstp + 4 * dst_stride + j, x4);
-        _mm256_store_ps(dstp + 5 * dst_stride + j, x5);
-        _mm256_store_ps(dstp + 6 * dst_stride + j, x6);
-        _mm256_store_ps(dstp + 7 * dst_stride + j, x7);
+        simde_mm256_store_ps(dstp + j, x0);
+        simde_mm256_store_ps(dstp + 1 * dst_stride + j, x1);
+        simde_mm256_store_ps(dstp + 2 * dst_stride + j, x2);
+        simde_mm256_store_ps(dstp + 3 * dst_stride + j, x3);
+        simde_mm256_store_ps(dstp + 4 * dst_stride + j, x4);
+        simde_mm256_store_ps(dstp + 5 * dst_stride + j, x5);
+        simde_mm256_store_ps(dstp + 6 * dst_stride + j, x6);
+        simde_mm256_store_ps(dstp + 7 * dst_stride + j, x7);
     }
 
     // Solve L' x = y
     for (int j = ceil_n(width, 8) - 8; j >= 0; j -= 8) {
 
-        x0 = _mm256_load_ps(dstp + j);
-        x1 = _mm256_load_ps(dstp + 1 * dst_stride + j);
-        x2 = _mm256_load_ps(dstp + 2 * dst_stride + j);
-        x3 = _mm256_load_ps(dstp + 3 * dst_stride + j);
-        x4 = _mm256_load_ps(dstp + 4 * dst_stride + j);
-        x5 = _mm256_load_ps(dstp + 5 * dst_stride + j);
-        x6 = _mm256_load_ps(dstp + 6 * dst_stride + j);
-        x7 = _mm256_load_ps(dstp + 7 * dst_stride + j);
+        x0 = simde_mm256_load_ps(dstp + j);
+        x1 = simde_mm256_load_ps(dstp + 1 * dst_stride + j);
+        x2 = simde_mm256_load_ps(dstp + 2 * dst_stride + j);
+        x3 = simde_mm256_load_ps(dstp + 3 * dst_stride + j);
+        x4 = simde_mm256_load_ps(dstp + 4 * dst_stride + j);
+        x5 = simde_mm256_load_ps(dstp + 5 * dst_stride + j);
+        x6 = simde_mm256_load_ps(dstp + 6 * dst_stride + j);
+        x7 = simde_mm256_load_ps(dstp + 7 * dst_stride + j);
 
 #define SOLVEB(x, up, x_last0, x_last1, x_last2, width, j, m)\
         if (j + m < width - 3) {\
-            up = _mm256_set1_ps(upper[0][j + m]);\
-            x = _mm256_fnmadd_ps(up, x_last0, x);\
-            up = _mm256_set1_ps(upper[1][j + m]);\
-            x = _mm256_fnmadd_ps(up, x_last1, x);\
-            up = _mm256_set1_ps(upper[2][j + m]);\
-            x = _mm256_fnmadd_ps(up, x_last2, x);\
+            up = simde_mm256_set1_ps(upper[0][j + m]);\
+            x = simde_mm256_fnmadd_ps(up, x_last0, x);\
+            up = simde_mm256_set1_ps(upper[1][j + m]);\
+            x = simde_mm256_fnmadd_ps(up, x_last1, x);\
+            up = simde_mm256_set1_ps(upper[2][j + m]);\
+            x = simde_mm256_fnmadd_ps(up, x_last2, x);\
         } else if (j + m < width - 2) {\
-            up = _mm256_set1_ps(upper[0][j + m]);\
-            x = _mm256_fnmadd_ps(up, x_last0, x);\
-            up = _mm256_set1_ps(upper[1][j + m]);\
-            x = _mm256_fnmadd_ps(up, x_last1, x);\
+            up = simde_mm256_set1_ps(upper[0][j + m]);\
+            x = simde_mm256_fnmadd_ps(up, x_last0, x);\
+            up = simde_mm256_set1_ps(upper[1][j + m]);\
+            x = simde_mm256_fnmadd_ps(up, x_last1, x);\
         } else if (j + m < width - 1) {\
-            up = _mm256_set1_ps(upper[0][j + m]);\
-            x = _mm256_fnmadd_ps(up, x_last0, x);\
+            up = simde_mm256_set1_ps(upper[0][j + m]);\
+            x = simde_mm256_fnmadd_ps(up, x_last0, x);\
         }
 
         SOLVEB(x7, up, x_last0, x_last1, x_last2, width, j, 7);
@@ -346,14 +346,14 @@ static void process_line8_h_b7_avx2(int width, int current_width, int current_he
 
         mm256_transpose8_ps(&x0, &x1, &x2, &x3, &x4, &x5, &x6, &x7);
 
-        _mm256_store_ps(dstp + j, x0);
-        _mm256_store_ps(dstp + 1 * dst_stride + j, x1);
-        _mm256_store_ps(dstp + 2 * dst_stride + j, x2);
-        _mm256_store_ps(dstp + 3 * dst_stride + j, x3);
-        _mm256_store_ps(dstp + 4 * dst_stride + j, x4);
-        _mm256_store_ps(dstp + 5 * dst_stride + j, x5);
-        _mm256_store_ps(dstp + 6 * dst_stride + j, x6);
-        _mm256_store_ps(dstp + 7 * dst_stride + j, x7);
+        simde_mm256_store_ps(dstp + j, x0);
+        simde_mm256_store_ps(dstp + 1 * dst_stride + j, x1);
+        simde_mm256_store_ps(dstp + 2 * dst_stride + j, x2);
+        simde_mm256_store_ps(dstp + 3 * dst_stride + j, x3);
+        simde_mm256_store_ps(dstp + 4 * dst_stride + j, x4);
+        simde_mm256_store_ps(dstp + 5 * dst_stride + j, x5);
+        simde_mm256_store_ps(dstp + 6 * dst_stride + j, x6);
+        simde_mm256_store_ps(dstp + 7 * dst_stride + j, x7);
     }
 }
 
@@ -370,15 +370,15 @@ static void process_line8_h_avx2(int width, int current_width, int current_heigh
                                  int weights_columns, float * restrict weights, float * restrict * restrict lower, float * restrict * restrict upper,
                                  float * restrict diagonal, int src_stride, int dst_stride, const float * restrict srcp, float * restrict dstp, float * restrict temp)
 {
-    __m256 x0, x1, x2, x3, x4, x5, x6, x7;
-    __m256 a0, a1, lo, up, di, x_last;
+    simde__m256 x0, x1, x2, x3, x4, x5, x6, x7;
+    simde__m256 a0, a1, lo, up, di, x_last;
     int start;
     int c = bandwidth / 2;
-    x_last = _mm256_setzero_ps();
+    x_last = simde_mm256_setzero_ps();
     transpose_line_8x8_ps(temp, srcp, src_stride, 0, ceil_n(current_width, 8));
 
     for (int j = 0; j < width; j += 8) {
-        x0 = _mm256_setzero_ps();
+        x0 = simde_mm256_setzero_ps();
         x1 = x0;
         x2 = x0;
         x3 = x0;
@@ -389,9 +389,9 @@ static void process_line8_h_avx2(int width, int current_width, int current_heigh
 
 #define MATMULT(x, a0, a1, wl_idx, wr_idx, w_col, weights, temp, j, m)\
         for (int k = wl_idx[j + m]; k < wr_idx[j + m]; k++) {\
-            a0 = _mm256_set1_ps(weights[(j + m) * w_col + k - wl_idx[j + m]]);\
-            a1 = _mm256_load_ps(temp + k * 8);\
-            x = _mm256_fmadd_ps(a0, a1, x);\
+            a0 = simde_mm256_set1_ps(weights[(j + m) * w_col + k - wl_idx[j + m]]);\
+            a1 = simde_mm256_load_ps(temp + k * 8);\
+            x = simde_mm256_fmadd_ps(a0, a1, x);\
         }
 
         // A' b
@@ -409,13 +409,13 @@ static void process_line8_h_avx2(int width, int current_width, int current_heigh
 #define SOLVESTOREF(x, lo, di, c, start, j, m)\
         start = DSMAX(0, j + m - c);\
         for (int k = start; k < (j + m); k++) {\
-            lo = _mm256_set1_ps(lower[k - j - m + c][j + m]);\
-            x_last = _mm256_load_ps(dstp + (k % 8) * dst_stride + j - 8 * ((j + m) / 8 - k / 8));\
-            x = _mm256_fnmadd_ps(lo, x_last, x);\
+            lo = simde_mm256_set1_ps(lower[k - j - m + c][j + m]);\
+            x_last = simde_mm256_load_ps(dstp + (k % 8) * dst_stride + j - 8 * ((j + m) / 8 - k / 8));\
+            x = simde_mm256_fnmadd_ps(lo, x_last, x);\
         }\
-        di = _mm256_set1_ps(diagonal[j + m]);\
-        x = _mm256_mul_ps(x, di);\
-        _mm256_store_ps(dstp + m * dst_stride + j, x);
+        di = simde_mm256_set1_ps(diagonal[j + m]);\
+        x = simde_mm256_mul_ps(x, di);\
+        simde_mm256_store_ps(dstp + m * dst_stride + j, x);
 
         SOLVESTOREF(x0, lo, di, c, start, j, 0);
         SOLVESTOREF(x1, lo, di, c, start, j, 1);
@@ -433,14 +433,14 @@ static void process_line8_h_avx2(int width, int current_width, int current_heigh
     for (int j = ceil_n(width, 8) - 8; j >= 0; j -= 8) {
 
 #define SOLVESTOREB(x, up, c, start, j, m)\
-        x = _mm256_load_ps(dstp + m * dst_stride + j);\
+        x = simde_mm256_load_ps(dstp + m * dst_stride + j);\
         start = DSMIN(width - 1, j + m + c);\
         for (int k = start; k > (j + m); k--) {\
-            up = _mm256_set1_ps(upper[k - j - m - 1][j + m]);\
-            x_last = _mm256_load_ps(dstp + (k % 8) * dst_stride + j + 8 * (k / 8 - (j + m) / 8));\
-            x = _mm256_fnmadd_ps(up, x_last, x);\
+            up = simde_mm256_set1_ps(upper[k - j - m - 1][j + m]);\
+            x_last = simde_mm256_load_ps(dstp + (k % 8) * dst_stride + j + 8 * (k / 8 - (j + m) / 8));\
+            x = simde_mm256_fnmadd_ps(up, x_last, x);\
         }\
-        _mm256_store_ps(dstp + m * dst_stride + j, x);
+        simde_mm256_store_ps(dstp + m * dst_stride + j, x);
 
         SOLVESTOREB(x0, up, c, start, j, 7);
         SOLVESTOREB(x0, up, c, start, j, 6);
@@ -455,25 +455,25 @@ static void process_line8_h_avx2(int width, int current_width, int current_heigh
     }
 
     for (int j = 0; j < width; j += 8) {
-        x0 = _mm256_load_ps(dstp + j);
-        x1 = _mm256_load_ps(dstp + 1 * dst_stride + j);
-        x2 = _mm256_load_ps(dstp + 2 * dst_stride + j);
-        x3 = _mm256_load_ps(dstp + 3 * dst_stride + j);
-        x4 = _mm256_load_ps(dstp + 4 * dst_stride + j);
-        x5 = _mm256_load_ps(dstp + 5 * dst_stride + j);
-        x6 = _mm256_load_ps(dstp + 6 * dst_stride + j);
-        x7 = _mm256_load_ps(dstp + 7 * dst_stride + j);
+        x0 = simde_mm256_load_ps(dstp + j);
+        x1 = simde_mm256_load_ps(dstp + 1 * dst_stride + j);
+        x2 = simde_mm256_load_ps(dstp + 2 * dst_stride + j);
+        x3 = simde_mm256_load_ps(dstp + 3 * dst_stride + j);
+        x4 = simde_mm256_load_ps(dstp + 4 * dst_stride + j);
+        x5 = simde_mm256_load_ps(dstp + 5 * dst_stride + j);
+        x6 = simde_mm256_load_ps(dstp + 6 * dst_stride + j);
+        x7 = simde_mm256_load_ps(dstp + 7 * dst_stride + j);
 
         mm256_transpose8_ps(&x0, &x1, &x2, &x3, &x4, &x5, &x6, &x7);
 
-        _mm256_store_ps(dstp + j, x0);
-        _mm256_store_ps(dstp + 1 * dst_stride + j, x1);
-        _mm256_store_ps(dstp + 2 * dst_stride + j, x2);
-        _mm256_store_ps(dstp + 3 * dst_stride + j, x3);
-        _mm256_store_ps(dstp + 4 * dst_stride + j, x4);
-        _mm256_store_ps(dstp + 5 * dst_stride + j, x5);
-        _mm256_store_ps(dstp + 6 * dst_stride + j, x6);
-        _mm256_store_ps(dstp + 7 * dst_stride + j, x7);
+        simde_mm256_store_ps(dstp + j, x0);
+        simde_mm256_store_ps(dstp + 1 * dst_stride + j, x1);
+        simde_mm256_store_ps(dstp + 2 * dst_stride + j, x2);
+        simde_mm256_store_ps(dstp + 3 * dst_stride + j, x3);
+        simde_mm256_store_ps(dstp + 4 * dst_stride + j, x4);
+        simde_mm256_store_ps(dstp + 5 * dst_stride + j, x5);
+        simde_mm256_store_ps(dstp + 6 * dst_stride + j, x6);
+        simde_mm256_store_ps(dstp + 7 * dst_stride + j, x7);
     }
 }
 
@@ -564,28 +564,28 @@ static void process_plane_v_b3_avx2(int height, int current_height, int current_
 {
     float * restrict lower = lower2[0];
     float * restrict upper = upper2[0];
-    __m256 x, a0, a1, lo, up, di, x_last;
+    simde__m256 x, a0, a1, lo, up, di, x_last;
     for (int i = 0; i < height; i++) {
 
         for (int j = 0; j < current_width; j += 8) {
-            x = _mm256_setzero_ps();
+            x = simde_mm256_setzero_ps();
 
             // A' b
             for (int k = weights_left_idx[i]; k < weights_right_idx[i]; k++) {
-                a0 = _mm256_set1_ps(weights[i * weights_columns + k - weights_left_idx[i]]);
-                a1 = _mm256_load_ps(srcp + k * src_stride + j);
-                x = _mm256_fmadd_ps(a0, a1, x);
+                a0 = simde_mm256_set1_ps(weights[i * weights_columns + k - weights_left_idx[i]]);
+                a1 = simde_mm256_load_ps(srcp + k * src_stride + j);
+                x = simde_mm256_fmadd_ps(a0, a1, x);
             }
 
             // Solve LD y = A' b
             if (i != 0) {
-                lo = _mm256_set1_ps(lower[i]);
-                x_last = _mm256_load_ps(dstp + (i - 1) * dst_stride + j);
-                x = _mm256_fnmadd_ps(lo, x_last, x);
+                lo = simde_mm256_set1_ps(lower[i]);
+                x_last = simde_mm256_load_ps(dstp + (i - 1) * dst_stride + j);
+                x = simde_mm256_fnmadd_ps(lo, x_last, x);
             }
-            di = _mm256_set1_ps(diagonal[i]);
-            x = _mm256_mul_ps(x, di);
-            _mm256_store_ps(dstp + i * dst_stride + j, x);
+            di = simde_mm256_set1_ps(diagonal[i]);
+            x = simde_mm256_mul_ps(x, di);
+            simde_mm256_store_ps(dstp + i * dst_stride + j, x);
         
             
         }
@@ -594,11 +594,11 @@ static void process_plane_v_b3_avx2(int height, int current_height, int current_
     // Solve L' x = y
     for (int i = height - 2; i >= 0; i--) {
         for (int j = 0; j < current_width; j += 8) {
-            x = _mm256_load_ps(&dstp[i * dst_stride + j]);
-            x_last = _mm256_load_ps(dstp + (i + 1) * dst_stride + j);
-            up = _mm256_set1_ps(upper[i]);
-            x = _mm256_fnmadd_ps(up, x_last, x);
-            _mm256_store_ps(dstp + i * dst_stride + j, x);
+            x = simde_mm256_load_ps(&dstp[i * dst_stride + j]);
+            x_last = simde_mm256_load_ps(dstp + (i + 1) * dst_stride + j);
+            up = simde_mm256_set1_ps(upper[i]);
+            x = simde_mm256_fnmadd_ps(up, x_last, x);
+            simde_mm256_store_ps(dstp + i * dst_stride + j, x);
         }
     }
 }
@@ -616,45 +616,45 @@ static void process_plane_v_b7_avx2(int height, int current_height, int current_
                                     int weights_columns, float * restrict weights, float * restrict * restrict lower, float * restrict * restrict upper,
                                     float * restrict diagonal, int src_stride, int dst_stride, const float * restrict srcp, float * restrict dstp)
 {
-    __m256 x, a0, a1, lo, up, di, x_last;
+    simde__m256 x, a0, a1, lo, up, di, x_last;
 
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < current_width; j += 8) {
-            x = _mm256_setzero_ps();
+            x = simde_mm256_setzero_ps();
 
             // A' b
             for (int k = weights_left_idx[i]; k < weights_right_idx[i]; k++) {
-                a0 = _mm256_set1_ps(weights[i * weights_columns + k - weights_left_idx[i]]);
-                a1 = _mm256_load_ps(srcp + k * src_stride + j);
-                x = _mm256_fmadd_ps(a0, a1, x);
+                a0 = simde_mm256_set1_ps(weights[i * weights_columns + k - weights_left_idx[i]]);
+                a1 = simde_mm256_load_ps(srcp + k * src_stride + j);
+                x = simde_mm256_fmadd_ps(a0, a1, x);
             }
 
             // Solve LD y = A' b
             if (i > 2) {
-                lo = _mm256_set1_ps(lower[0][i]);
-                x_last = _mm256_load_ps(dstp + (i - 3) * dst_stride + j);
-                x = _mm256_fnmadd_ps(lo, x_last, x);
-                lo = _mm256_set1_ps(lower[1][i]);
-                x_last = _mm256_load_ps(dstp + (i - 2) * dst_stride + j);
-                x = _mm256_fnmadd_ps(lo, x_last, x);
-                lo = _mm256_set1_ps(lower[2][i]);
-                x_last = _mm256_load_ps(dstp + (i - 1) * dst_stride + j);
-                x = _mm256_fnmadd_ps(lo, x_last, x);
+                lo = simde_mm256_set1_ps(lower[0][i]);
+                x_last = simde_mm256_load_ps(dstp + (i - 3) * dst_stride + j);
+                x = simde_mm256_fnmadd_ps(lo, x_last, x);
+                lo = simde_mm256_set1_ps(lower[1][i]);
+                x_last = simde_mm256_load_ps(dstp + (i - 2) * dst_stride + j);
+                x = simde_mm256_fnmadd_ps(lo, x_last, x);
+                lo = simde_mm256_set1_ps(lower[2][i]);
+                x_last = simde_mm256_load_ps(dstp + (i - 1) * dst_stride + j);
+                x = simde_mm256_fnmadd_ps(lo, x_last, x);
             } else if (i > 1) {
-                lo = _mm256_set1_ps(lower[1][i]);
-                x_last = _mm256_load_ps(dstp + (i - 2) * dst_stride + j);
-                x = _mm256_fnmadd_ps(lo, x_last, x);
-                lo = _mm256_set1_ps(lower[2][i]);
-                x_last = _mm256_load_ps(dstp + (i - 1) * dst_stride + j);
-                x = _mm256_fnmadd_ps(lo, x_last, x);
+                lo = simde_mm256_set1_ps(lower[1][i]);
+                x_last = simde_mm256_load_ps(dstp + (i - 2) * dst_stride + j);
+                x = simde_mm256_fnmadd_ps(lo, x_last, x);
+                lo = simde_mm256_set1_ps(lower[2][i]);
+                x_last = simde_mm256_load_ps(dstp + (i - 1) * dst_stride + j);
+                x = simde_mm256_fnmadd_ps(lo, x_last, x);
             } else if (i > 0) {
-                lo = _mm256_set1_ps(lower[2][i]);
-                x_last = _mm256_load_ps(dstp + (i - 1) * dst_stride + j);
-                x = _mm256_fnmadd_ps(lo, x_last, x);
+                lo = simde_mm256_set1_ps(lower[2][i]);
+                x_last = simde_mm256_load_ps(dstp + (i - 1) * dst_stride + j);
+                x = simde_mm256_fnmadd_ps(lo, x_last, x);
             }
-            di = _mm256_set1_ps(diagonal[i]);
-            x = _mm256_mul_ps(x, di);
-            _mm256_store_ps(dstp + i * dst_stride + j, x);
+            di = simde_mm256_set1_ps(diagonal[i]);
+            x = simde_mm256_mul_ps(x, di);
+            simde_mm256_store_ps(dstp + i * dst_stride + j, x);
         }
     }
 
@@ -662,31 +662,31 @@ static void process_plane_v_b7_avx2(int height, int current_height, int current_
     for (int i = height - 2; i >= 0; i--) {
         for (int j = 0; j < current_width; j += 8) {
 
-            x = _mm256_load_ps(dstp + i * dst_stride + j);
+            x = simde_mm256_load_ps(dstp + i * dst_stride + j);
 
             if (i < height - 3) {
-                up = _mm256_set1_ps(upper[0][i]);
-                x_last = _mm256_load_ps(dstp + (i + 1) * dst_stride + j);
-                x = _mm256_fnmadd_ps(up, x_last, x);
-                up = _mm256_set1_ps(upper[1][i]);
-                x_last = _mm256_load_ps(dstp + (i + 2) * dst_stride + j);
-                x = _mm256_fnmadd_ps(up, x_last, x);
-                up = _mm256_set1_ps(upper[2][i]);
-                x_last = _mm256_load_ps(dstp + (i + 3) * dst_stride + j);
-                x = _mm256_fnmadd_ps(up, x_last, x);
+                up = simde_mm256_set1_ps(upper[0][i]);
+                x_last = simde_mm256_load_ps(dstp + (i + 1) * dst_stride + j);
+                x = simde_mm256_fnmadd_ps(up, x_last, x);
+                up = simde_mm256_set1_ps(upper[1][i]);
+                x_last = simde_mm256_load_ps(dstp + (i + 2) * dst_stride + j);
+                x = simde_mm256_fnmadd_ps(up, x_last, x);
+                up = simde_mm256_set1_ps(upper[2][i]);
+                x_last = simde_mm256_load_ps(dstp + (i + 3) * dst_stride + j);
+                x = simde_mm256_fnmadd_ps(up, x_last, x);
             } else if (i < height - 2) {
-                up = _mm256_set1_ps(upper[0][i]);
-                x_last = _mm256_load_ps(dstp + (i + 1) * dst_stride + j);
-                x = _mm256_fnmadd_ps(up, x_last, x);
-                up = _mm256_set1_ps(upper[1][i]);
-                x_last = _mm256_load_ps(dstp + (i + 2) * dst_stride + j);
-                x = _mm256_fnmadd_ps(up, x_last, x);
+                up = simde_mm256_set1_ps(upper[0][i]);
+                x_last = simde_mm256_load_ps(dstp + (i + 1) * dst_stride + j);
+                x = simde_mm256_fnmadd_ps(up, x_last, x);
+                up = simde_mm256_set1_ps(upper[1][i]);
+                x_last = simde_mm256_load_ps(dstp + (i + 2) * dst_stride + j);
+                x = simde_mm256_fnmadd_ps(up, x_last, x);
             } else if (i < height - 1) {
-                up = _mm256_set1_ps(upper[0][i]);
-                x_last = _mm256_load_ps(dstp + (i + 1) * dst_stride + j);
-                x = _mm256_fnmadd_ps(up, x_last, x);
+                up = simde_mm256_set1_ps(upper[0][i]);
+                x_last = simde_mm256_load_ps(dstp + (i + 1) * dst_stride + j);
+                x = simde_mm256_fnmadd_ps(up, x_last, x);
             }
-            _mm256_store_ps(dstp + i * dst_stride + j, x);
+            simde_mm256_store_ps(dstp + i * dst_stride + j, x);
         }
     }
 }
@@ -699,31 +699,31 @@ static void process_plane_v_avx2(int height, int current_height, int current_wid
                                  int weights_columns, float * restrict weights, float * restrict * restrict lower, float * restrict * restrict upper,
                                  float * restrict diagonal, int src_stride, int dst_stride, const float * restrict srcp, float * restrict dstp)
 {
-    __m256 x, a0, a1, lo, up, di, x_last;
+    simde__m256 x, a0, a1, lo, up, di, x_last;
     int start;
     int c = bandwidth / 2;
 
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < current_width; j += 8) {
-            x = _mm256_setzero_ps();
+            x = simde_mm256_setzero_ps();
 
             // A' b
             for (int k = weights_left_idx[i]; k < weights_right_idx[i]; k++) {
-                a0 = _mm256_set1_ps(weights[i * weights_columns + k - weights_left_idx[i]]);
-                a1 = _mm256_load_ps(srcp + k * src_stride + j);
-                x = _mm256_fmadd_ps(a0, a1, x);
+                a0 = simde_mm256_set1_ps(weights[i * weights_columns + k - weights_left_idx[i]]);
+                a1 = simde_mm256_load_ps(srcp + k * src_stride + j);
+                x = simde_mm256_fmadd_ps(a0, a1, x);
             }
 
             // Solve LD y = A' b
             start = DSMAX(0, i - c);
             for (int k = start; k < i; k++) {
-                lo = _mm256_set1_ps(lower[k - i + c][i]);
-                x_last = _mm256_load_ps(dstp + k * dst_stride + j);
-                x = _mm256_fnmadd_ps(lo, x_last, x);
+                lo = simde_mm256_set1_ps(lower[k - i + c][i]);
+                x_last = simde_mm256_load_ps(dstp + k * dst_stride + j);
+                x = simde_mm256_fnmadd_ps(lo, x_last, x);
             }
-            di = _mm256_set1_ps(diagonal[i]);
-            x = _mm256_mul_ps(x, di);
-            _mm256_store_ps(dstp + i * dst_stride + j, x);            
+            di = simde_mm256_set1_ps(diagonal[i]);
+            x = simde_mm256_mul_ps(x, di);
+            simde_mm256_store_ps(dstp + i * dst_stride + j, x);            
         }
     }
 
@@ -731,14 +731,14 @@ static void process_plane_v_avx2(int height, int current_height, int current_wid
     for (int i = height - 2; i >= 0; i--) {
         for (int j = 0; j < current_width; j += 8) {
 
-            x = _mm256_load_ps(dstp + i * dst_stride + j);
+            x = simde_mm256_load_ps(dstp + i * dst_stride + j);
             start = DSMIN(height - 1, i + c);
             for (int k = start; k > i; k--) {
-                up = _mm256_set1_ps(upper[k - i - 1][i]);
-                x_last = _mm256_load_ps(dstp + k * dst_stride + j);
-                x = _mm256_fnmadd_ps(up, x_last, x);
+                up = simde_mm256_set1_ps(upper[k - i - 1][i]);
+                x_last = simde_mm256_load_ps(dstp + k * dst_stride + j);
+                x = simde_mm256_fnmadd_ps(up, x_last, x);
             }
-            _mm256_store_ps(dstp + i * dst_stride + j, x);
+            simde_mm256_store_ps(dstp + i * dst_stride + j, x);
         }
     }
 }

@@ -21,7 +21,7 @@
  */
 
 
-#ifdef DESCALE_X86
+#if defined(DESCALE_X86) || defined(__ARM_NEON__)
 
 #ifndef DESCALE_AVX2_H
 #define DESCALE_AVX2_H

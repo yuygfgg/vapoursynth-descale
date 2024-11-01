@@ -29,7 +29,7 @@
 #include "common.h"
 #include "descale.h"
 
-#ifdef DESCALE_X86
+#if defined(DESCALE_X86) || defined(__ARM_NEON__)
     #include "x86/cpuinfo_x86.h"
     #include "x86/descale_avx2.h"
 #endif
@@ -892,7 +892,8 @@ struct DescaleAPI get_descale_api(enum DescaleOpt opt)
         &free_core,
         NULL
     };
-#ifdef DESCALE_X86
+
+#if defined(DESCALE_X86)
     struct X86Capabilities caps = {0};
     if (opt == DESCALE_OPT_AUTO)
         caps = query_x86_capabilities();
@@ -900,9 +901,22 @@ struct DescaleAPI get_descale_api(enum DescaleOpt opt)
         dsapi.process_vectors = &descale_process_vectors_avx2;
     } else {
 #endif
+
+#if defined(__ARM_NEON__)
+    if (opt == DESCALE_OPT_AUTO) {
+        dsapi.process_vectors = &descale_process_vectors_avx2;
+    } else {
+#endif
+
         dsapi.process_vectors = &descale_process_vectors_c;
+
+#if defined(__ARM_NEON__)
+    }
+#endif
+
 #ifdef DESCALE_X86
     }
 #endif
+
     return dsapi;
 }
