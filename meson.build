@@ -75,7 +75,13 @@ if host_machine.cpu_family().startswith('x86')
                 include_directories: includedirs
             )
 endif
+sources += ['src/x86/cpuinfo_x86.c']
 
+libs += static_library('descale_avx2', 'src/x86/descale_avx2.c',
+            dependencies: [m_dep],
+            pic: true,
+            include_directories: includedirs
+        )
 
 shared_module('descale', sources,
     dependencies: deps,

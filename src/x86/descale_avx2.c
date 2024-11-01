@@ -26,6 +26,8 @@
 
 #include <stdlib.h>
 #include "simde/x86/avx2.h"
+#include "simde/x86/fma.h"
+#include "simde/x86/sse.h"
 #include "common.h"
 #include "x86/descale_avx2.h"
 
@@ -45,14 +47,14 @@ static inline __attribute__((always_inline)) void mm256_transpose8_ps(simde__m25
     t6 = simde_mm256_unpacklo_ps(*row6, *row7);
     t7 = simde_mm256_unpackhi_ps(*row6, *row7);
 
-    tt0 = simde_mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(1, 0, 1, 0));
-    tt1 = simde_mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(3, 2, 3, 2));
-    tt2 = simde_mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(1, 0, 1, 0));
-    tt3 = simde_mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(3, 2, 3, 2));
-    tt4 = simde_mm256_shuffle_ps(t4, t6, _MM_SHUFFLE(1, 0, 1, 0));
-    tt5 = simde_mm256_shuffle_ps(t4, t6, _MM_SHUFFLE(3, 2, 3, 2));
-    tt6 = simde_mm256_shuffle_ps(t5, t7, _MM_SHUFFLE(1, 0, 1, 0));
-    tt7 = simde_mm256_shuffle_ps(t5, t7, _MM_SHUFFLE(3, 2, 3, 2));
+    tt0 = simde_mm256_shuffle_ps(t0, t2, SIMDE_MM_SHUFFLE(1, 0, 1, 0));
+    tt1 = simde_mm256_shuffle_ps(t0, t2, SIMDE_MM_SHUFFLE(3, 2, 3, 2));
+    tt2 = simde_mm256_shuffle_ps(t1, t3, SIMDE_MM_SHUFFLE(1, 0, 1, 0));
+    tt3 = simde_mm256_shuffle_ps(t1, t3, SIMDE_MM_SHUFFLE(3, 2, 3, 2));
+    tt4 = simde_mm256_shuffle_ps(t4, t6, SIMDE_MM_SHUFFLE(1, 0, 1, 0));
+    tt5 = simde_mm256_shuffle_ps(t4, t6, SIMDE_MM_SHUFFLE(3, 2, 3, 2));
+    tt6 = simde_mm256_shuffle_ps(t5, t7, SIMDE_MM_SHUFFLE(1, 0, 1, 0));
+    tt7 = simde_mm256_shuffle_ps(t5, t7, SIMDE_MM_SHUFFLE(3, 2, 3, 2));
 
     *row0 = simde_mm256_permute2f128_ps(tt0, tt4, 0x20);
     *row1 = simde_mm256_permute2f128_ps(tt1, tt5, 0x20);
