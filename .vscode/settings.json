@@ -7,5 +7,6 @@
     "*.vpy": "python",
     "common.h": "c",
     "avx2.h": "c"
-  }
+  },
+  "sonarlint.pathToCompileCommands": "${workspaceFolder}/build/compile_commands.json"
 }
