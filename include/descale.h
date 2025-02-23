@@ -35,7 +35,8 @@ typedef enum DescaleMode
     DESCALE_MODE_SPLINE16 = 4,
     DESCALE_MODE_SPLINE36 = 5,
     DESCALE_MODE_SPLINE64 = 6,
-    DESCALE_MODE_CUSTOM   = 7,
+    DESCALE_MODE_POINT    = 7,
+    DESCALE_MODE_CUSTOM   = 8,
 
     DESCALE_FLAG_SCALE    = 1 << 8
 } DescaleMode;
