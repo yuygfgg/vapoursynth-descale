@@ -239,6 +239,9 @@ static void VS_CC descale_create(const VSMap *in, VSMap *out, void *user_data, V
         case DESCALE_MODE_SPLINE64:
             funcname = params.upscale ? "Spline64" : "Despline64";
             break;
+        case DESCALE_MODE_POINT:
+            funcname = params.upscale ? "Point" : "Depoint";
+            break;
         case DESCALE_MODE_CUSTOM:
             funcname = params.upscale ? "ScaleCustom" : "Decustom";
             break;
@@ -546,6 +549,8 @@ VS_EXTERNAL_API(void) VapourSynthPluginInit2(VSPlugin *plugin, const VSPLUGINAPI
     DESCALE_REGISTER_FUNCTION("Despline36", "Spline36", DESCALE_ALL_ARGS, DESCALE_MODE_SPLINE36);
 
     DESCALE_REGISTER_FUNCTION("Despline64", "Spline64", DESCALE_ALL_ARGS, DESCALE_MODE_SPLINE64);
+
+    DESCALE_REGISTER_FUNCTION("Depoint", "Point", DESCALE_ALL_ARGS, DESCALE_MODE_POINT);
 
     DESCALE_REGISTER_FUNCTION("Decustom", "ScaleCustom", DESCALE_BASE_ARGS "custom_kernel:func;taps:int;" DESCALE_COM_OUT_ARGS, DESCALE_MODE_CUSTOM);
 
