@@ -26,8 +26,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include </usr/local/include/vapoursynth/VapourSynth4.h>
-#include </usr/local/include/vapoursynth/VSHelper4.h>
+#include <vapoursynth/VapourSynth4.h>
+#include <vapoursynth/VSHelper4.h>
 #include "descale.h"
 #include "plugin.h"
 #include <stdio.h>
