@@ -26,10 +26,10 @@ if libtype in ['avisynth', 'both']
     sources += ['src/avsplugin.c']
 endif
 
-# Don't require VS to be installed on Windows,
-# so we don't need to have VS fully installed
-# in our mingw environment. Just the header files
-# are enough.
+if libtype in ['vapoursynth', 'both']
+    vs = dependency('vapoursynth').partial_dependency(compile_args: true, includes: true)
+    deps += [vs]
+endif
 if host_machine.system() == 'windows'
     # Statically link things on Windows.
     m_dep = cc.find_library('m', static: true, required: false)
@@ -48,10 +48,6 @@ else
     m_dep = cc.find_library('m', required: false)
     p_dep = cc.find_library('pthread')
     deps += [m_dep, p_dep]
-    if libtype in ['vapoursynth', 'both']
-        vs = dependency('vapoursynth').partial_dependency(compile_args: true, includes: true)
-        deps += [vs]
-    endif
     if libtype in ['avisynth', 'both']
         avs = dependency('avisynth')
         deps += [avs]
