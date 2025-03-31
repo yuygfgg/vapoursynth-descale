@@ -1,5 +1,5 @@
 project('Descale', 'c',
-    default_options: ['buildtype=release', 'b_ndebug=if-release', 'c_std=c99'],
+    default_options: ['buildtype=release', 'b_ndebug=if-release', 'c_std=c99', 'b_lto=true'],
     meson_version: '>=0.56.0',
     version: '9'
 )
@@ -7,6 +7,20 @@ project('Descale', 'c',
 add_global_arguments(['-D_XOPEN_SOURCE=700'], language: 'c')
 
 cc = meson.get_compiler('c')
+
+polly_code = '''
+#include <stdio.h>
+int main() {
+    return 0;
+}
+'''
+
+polly_result = cc.compiles(polly_code, args: ['-mllvm', '-polly', '-mllvm', '-polly-vectorizer=stripmine', '-mllvm', '-polly-tiling'])
+
+if polly_result
+    add_global_arguments('-mllvm', '-polly', '-mllvm', '-polly-vectorizer=stripmine', '-mllvm', '-polly-tiling', language: 'cpp')
+endif
+
 
 includedirs = ['include', 'src']
 
