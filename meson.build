@@ -18,7 +18,7 @@ int main() {
 polly_result = cc.compiles(polly_code, args: ['-mllvm', '-polly', '-mllvm', '-polly-vectorizer=stripmine', '-mllvm', '-polly-tiling'])
 
 if polly_result
-    add_global_arguments('-mllvm', '-polly', '-mllvm', '-polly-vectorizer=stripmine', '-mllvm', '-polly-tiling', language: 'cpp')
+    add_global_arguments('-mllvm', '-polly', '-mllvm', '-polly-vectorizer=stripmine', '-mllvm', '-polly-tiling', language: 'c')
 endif
 
 
