@@ -2,12 +2,8 @@ name: Build (Windows / MSYS2)
 
 on:
   push:
-    paths:
-      - 'src/*'
-      - 'include/*'
-      - 'meson.build'
-      - 'meson-options.txt'
-      - '.github/workflows/windows.yml'
+    branches: [master]
+  pull_request:
   workflow_dispatch:
   schedule:
     - cron: "0 0 1 * *"
